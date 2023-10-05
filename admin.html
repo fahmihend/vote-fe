@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Page</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <a class="navbar-brand" href="#">Admin Panel</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="addUserLink">Add User</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="getResultLink">Get Result Data</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="getUserLink">Get User Data</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="text-center">Admin Panel</h2>
+            </div>
+            <div class="card-body" id="adminContent">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      const baseurl = 'http://localhost:3001'; 
+      // Function to load the "Add User" form
+      function loadAddUserForm() {
+        if (!localStorage.token || localStorage.token === "") {
+          window.alert("Please Login Before Access This Page");
+          window.location.href = "./login.html";
+        }
+        console.log('here')
+        const addUserForm = `
+                <h3>Add User</h3>
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">Add User</button>
+                    </div>
+                </form>
+            `;
+        document.getElementById("adminContent").innerHTML = addUserForm;
+
+        // Add an event listener to the "Add User" form submit
+        document
+          .getElementById("addUserForm")
+          .addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            // Get the form data
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+
+            // Construct the request object
+            const data = {
+              username: username,
+              password: password,
+            };
+
+            // Retrieve the token from local storage
+            const token = localStorage.getItem("token");
+
+            // Send a POST request to the API endpoint for adding a user with authorization headers
+            fetch(`${baseurl}/register`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(data),
+            })
+              .then((response) => {
+                if (!response.ok) {
+                  if (response.status === 403) {
+                    window.alert('Session Expired');
+                    window.location.href = './login.html'
+                  } else {
+                    throw new Error("Network response was not ok");
+                  }
+                }
+                return response.json()
+              })
+              .then((data) => {
+                // Handle the response from the server (e.g., show a success message or handle errors)
+                window.alert(data.message);
+                loadAddUserForm();
+                // You can display a success message or handle errors here
+              })
+              .catch((error) => {
+                // Handle any errors that occurred during the fetch
+                if (error.status === 403) {
+                  window.alert('Session Expired');
+                  window.location.href = './login.html'
+                };
+              });
+          });
+      }
+
+      function loadDataFromAPI(endpoint, tableName) {
+        // Retrieve the token from local storage
+        const token = localStorage.getItem("token");
+
+        // Make a GET request to the specified API endpoint with authorization headers
+        fetch(endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              if (response.status === 403) {
+                window.alert('Session Expired');
+                  window.location.href = './login.html'
+              } else {
+                throw new Error("Network response was not ok");
+              }
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Ensure data is an array before using map
+            if (!Array.isArray(data.data)) {
+              throw new Error("Data received is not an array");
+            }
+
+            // Handle the response from the server
+            console.log("Data received:", data.data); // Check if data is received
+            const tableContent = `
+            <h3>${tableName}</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.data
+                      .map(
+                        (item) => `
+                        <tr>
+                            <td>${item._id}</td>
+                            <td>${item.username}</td>
+                            <td>${item.role}</td>
+                        </tr>
+                    `
+                      )
+                      .join("")}
+                </tbody>
+            </table>
+        `;
+            document.getElementById("adminContent").innerHTML = tableContent;
+          })
+          .catch((error) => {
+            // Handle any errors that occurred during the fetch
+            if (error.status === 403) {
+                  window.alert('Session Expired');
+                  window.location.href = './login.html'
+                };
+          });
+      }
+
+      function loadDataVoteAPI(endpoint, tableName) {
+        // Retrieve the token from local storage
+        const token = localStorage.getItem("token");
+
+        // Make a GET request to the specified API endpoint with authorization headers
+        fetch(endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          },
+        })
+          .then((response) => {
+            console.log(response)
+            if (!response.ok) {
+              if (response.status === 403) {
+                window.alert('Session Expired');
+                window.location.href = './login.html'
+              } else {
+                throw new Error("Network response was not ok");
+              }
+            }
+            return response.json();
+          })
+          .then((data) => {
+            // Ensure data is an array before using map
+            if (!Array.isArray(data.data)) {
+              throw new Error("Data received is not an array");
+            }
+
+            // Handle the response from the server
+            console.log("Data received:", data.data); // Check if data is received
+            let total = 0;
+            data.data.map((item) => total += item.count)
+            const tableContent = `
+            <h3>${tableName}</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.data
+                      .map(
+                        (item) => `
+                        <tr>
+                            <td>${item.name}</td>
+                            <td>${item.count}</td>
+                        </tr>
+                    `
+                      )
+                      .join("")}
+                      <tr>
+                            <td>Total Votes</td>
+                            <td>${total}</td>
+                        </tr>
+                </tbody>
+            </table>
+        `;
+            document.getElementById("adminContent").innerHTML = tableContent;
+          })
+          .catch((error) => {
+            console.log('hereee', error)
+            // Handle any errors that occurred during the fetch
+            if (error.status === 403) {
+                  window.alert('Session Expired');
+                  window.location.href = './login.html'
+                };
+          });
+      }
+
+      // Event listeners for navigation links
+      document
+        .getElementById("addUserLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault();
+          loadAddUserForm();
+        });
+
+      document
+        .getElementById("getResultLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault();
+          loadDataVoteAPI(`${baseurl}/result-vote`, "Vote Result Data");
+        });
+
+      document
+        .getElementById("getUserLink")
+        .addEventListener("click", function (event) {
+          event.preventDefault();
+          loadDataFromAPI(`${baseurl}/user-list`, "User Data");
+        });
+
+      // Initial load (you can choose one of the options as default)
+      loadAddUserForm();
+    </script>
+  </body>
+</html>

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <!-- Add Bootstrap CSS link -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
@@ -35,27 +34,25 @@
         </div>
     </div>
 
-    <!-- Add Bootstrap JS and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
+        const baseurl = 'http://localhost:3001';
         document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent the form from submitting normally
+            event.preventDefault();
             
-            // Get the form data
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             
-            // Construct the request object
             const data = {
                 username: username,
                 password: password
             };
 
             // Send a POST request to the API endpoint
-            fetch('http://localhost:3000/auth/login', {
+            fetch(`${baseurl}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -63,9 +60,28 @@
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
-            .then(data => {
-                // Handle the response from the server (e.g., show a message)
-                console.log(data);
+            .then(res => {
+                // Handle the response from the server
+                if (res.data.isVoted === true) {
+                    window.alert('You are already voted!')
+                    window.location.href = './login.html'
+                }
+                if (res.data.role === 'admin' || res.data.role === 'user') {
+                    // Save the token to local storage
+                    localStorage.setItem('token', res.data.token);
+                    // Redirect to the appropriate page based on the role
+                    if (res.data.role === 'admin') {
+                        // Redirect to the admin page
+                        window.location.href = './admin.html';
+                    } else {
+                        // Redirect to the user page
+                        window.location.href = './user.html';
+                    }
+                } else {
+                    // Handle other roles or errors
+                    window.alert('Invalid role or response:', res.message);
+                    window.location.href = './login.html';
+                }
             })
             .catch(error => {
                 // Handle any errors that occurred during the fetch
