@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Voting Page</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .logout-button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">User Voting Page</a>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-center">Vote</h2>
+                    </div>
+                    <div class="card-body">
+                        <form id="voteForm">
+                            <div class="form-group">
+                                <label for="voteOption">Enter Your Vote:</label>
+                                <input type="text" id="voteOption" name="voteOption" class="form-control" required>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary">Submit Vote</button>
+                            </div>
+                        </form>
+
+                        <div class="text-center logout-button">
+                            <button class="btn btn-danger" id="logoutButton">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Event listener for the logout button
+        const baseurl = "http://localhost:3001";
+        document.getElementById('logoutButton').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        });
+
+        // Event listener for the vote form submission
+        document.getElementById('voteForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const voteOption = document.getElementById('voteOption').value;
+
+            const token = localStorage.getItem('token');
+
+            const data = {
+                voteOption: voteOption
+            };
+
+            // Send a POST request to the API endpoint for adding a vote with authorization headers
+            fetch(`${baseurl}/add-vote`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        window.alert('Already Voted')
+                    } else if (response.status === 401) {
+                        window.alert('Authorization Issue, Please Re-Login')
+                        window.location.href = './login.html'
+                    } else {
+                        throw new Error('Something went wrong')
+                    }
+                }
+                response.json()
+            })
+            .then(responseData => {
+                window.alert(responseData.message);
+            })
+            .catch(error => {
+                window.alert(error)
+            });
+        });
+    </script>
+</body>
+</html>

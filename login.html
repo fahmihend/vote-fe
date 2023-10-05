@@ -59,7 +59,15 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 422) {
+                        window.alert('Wrong password or user not exist');
+                        location.reload();
+                    }
+                }
+                response.json()
+            })
             .then(res => {
                 // Handle the response from the server
                 if (res.data.isVoted === true) {
