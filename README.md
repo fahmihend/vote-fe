@@ -1,2 +1,3 @@
 ## HOW TO RUN
-1. Simply open the login.html
+1. Run the backend apps
+2. Simply open the login.html
