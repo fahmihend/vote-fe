@@ -59,17 +59,12 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 422) {
-                        window.alert('Wrong password or user not exist');
-                        location.reload();
-                    }
-                }
-                response.json()
-            })
+            .then(response => response.json())
             .then(res => {
                 // Handle the response from the server
+                if (res.message === 'Wrong password' || res.message === 'User not exist') {
+                    window.alert(res.message)
+                }
                 if (res.data.isVoted === true) {
                     window.alert('You are already voted!')
                     window.location.href = './login.html'
@@ -88,7 +83,7 @@
                 } else {
                     // Handle other roles or errors
                     window.alert('Invalid role or response:', res.message);
-                    window.location.href = './login.html';
+                    // window.location.href = './login.html';
                 }
             })
             .catch(error => {
