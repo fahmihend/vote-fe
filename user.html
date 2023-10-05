@@ -78,9 +78,10 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    if (response.status === 403) {
+                    if (response.status === 422) {
                         window.alert('Already Voted')
-                    } else if (response.status === 401) {
+                        location.reload()
+                    } else if (response.status === 401 || response.status === 403) {
                         window.alert('Authorization Issue, Please Re-Login')
                         window.location.href = './login.html'
                     } else {
@@ -91,7 +92,7 @@
                 }
             })
             .then(responseData => {
-                if (responseData.status === 'Success') {
+                if (responseData?.status === 'Success') {
                     window.alert(responseData.message);
                 }
             })
