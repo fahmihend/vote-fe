@@ -36,6 +36,7 @@
           </li>
         </ul>
       </div>
+      <button class="btn btn-danger logout-button" id="logoutButton">Logout</button>
     </nav>
 
     <div class="container mt-5">
@@ -57,6 +58,13 @@
 
     <script>
       const baseurl = "http://localhost:3001";
+      document.getElementById('logoutButton').addEventListener('click', function() {
+            // Clear the token from local storage
+            localStorage.removeItem('token');
+
+            // Redirect to the login page (replace 'login.html' with your actual login page URL)
+            window.location.href = 'login.html';
+        });
       // Function to load the "Add User" form
       function loadAddUserForm() {
         if (!localStorage.token || localStorage.token === "") {
