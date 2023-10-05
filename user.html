@@ -86,11 +86,14 @@
                     } else {
                         throw new Error('Something went wrong')
                     }
+                } else {
+                    return response.json()
                 }
-                response.json()
             })
             .then(responseData => {
-                window.alert(responseData.message);
+                if (responseData.status === 'Success') {
+                    window.alert(responseData.message);
+                }
             })
             .catch(error => {
                 window.alert(error)
